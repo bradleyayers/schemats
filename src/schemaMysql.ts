@@ -176,4 +176,8 @@ export class MysqlDatabase implements Database {
     public getDefaultSchema (): string {
         return this.defaultSchema
     }
+
+    public end (): void {
+        this.db.end()
+    }
 }

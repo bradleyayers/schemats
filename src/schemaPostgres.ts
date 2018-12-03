@@ -5,13 +5,12 @@ import Options from './options'
 import { TableDefinition, Database } from './schemaInterfaces'
 import { transformEnumNameForReference } from './typescript'
 
-const pgp = PgPromise()
-
 export class PostgresDatabase implements Database {
+    private pgp = PgPromise()
     private db: PgPromise.IDatabase<{}>
 
     constructor (public connectionString: string) {
-        this.db = pgp(connectionString)
+        this.db = this.pgp(connectionString)
     }
 
     private static mapTableDefinitionToType (tableDefinition: TableDefinition, customTypes: string[], options: Options): TableDefinition {
@@ -52,6 +51,9 @@ export class PostgresDatabase implements Database {
                 case 'timestamp':
                 case 'timestamptz':
                     column.tsType = 'Date'
+                    return column
+                case 'tsvector':
+                    column.tsType = 'unknown'
                     return column
                 case '_int2':
                 case '_int4':
@@ -99,7 +101,7 @@ export class PostgresDatabase implements Database {
     public async getEnumTypes (schema?: string) {
         type T = {name: string, value: any}
         let enums: any = {}
-        let enumSchemaWhereClause = schema ? pgp.as.format(`where n.nspname = $1`, schema) : ''
+        let enumSchemaWhereClause = schema ? this.pgp.as.format(`where n.nspname = $1`, schema) : ''
         await this.db.each<T>(
              'select n.nspname as schema, t.typname as name, e.enumlabel as value ' +
              'from pg_type t ' +
@@ -149,6 +151,10 @@ export class PostgresDatabase implements Database {
             [schemaName],
             (schemaItem: {table_name: string}) => schemaItem.table_name
         )
+    }
+
+    public end () {
+        this.pgp.end()
     }
 
     getDefaultSchema (): string {

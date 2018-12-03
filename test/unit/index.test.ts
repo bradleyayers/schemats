@@ -16,7 +16,8 @@ describe('index', () => {
         getEnumTypes: typedTableSandbox.stub(),
         getTableDefinition: typedTableSandbox.stub(),
         getSchemaTables: typedTableSandbox.stub(),
-        connectionString: 'sql://'
+        connectionString: 'sql://',
+        end: typedTableSandbox.stub()
     } as Database
     const tsReflection = Typescript as any
     const dbReflection = db as any
